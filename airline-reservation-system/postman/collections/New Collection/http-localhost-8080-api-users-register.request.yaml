@@ -1,0 +1,25 @@
+$kind: http-request
+name: http://localhost:8080/api/users/register
+description: ""
+url: http://localhost:8080/api/users/register
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"firstName\": \"Manasa\",\r
+
+    \    \"lastName\": \"Aligala\",\r
+
+    \    \"email\": \"manasa@gmail.com\",\r
+
+    \    \"password\": \"password123\",\r
+
+    \    \"phoneNumber\": \"9876543210\",\r
+
+    \    \"role\": \"CUSTOMER\"\r
+
+    }"
+settings:
+  protocolVersion: auto
+order: 1785679345037
