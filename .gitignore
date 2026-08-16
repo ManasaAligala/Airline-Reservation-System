@@ -1,0 +1,24 @@
+# Node
+node_modules/
+dist/
+
+# Java / Maven
+target/
+*.class
+
+# Local JDK
+oracleJdk-25/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# Environment / secrets
+.env
+
+# Local Spring configuration
+application-local.properties
