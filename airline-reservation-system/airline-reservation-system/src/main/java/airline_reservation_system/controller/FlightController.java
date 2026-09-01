@@ -2,6 +2,8 @@ package airline_reservation_system.controller;
 
 import airline_reservation_system.entity.Flight;
 import airline_reservation_system.service.FlightService;
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,8 @@ public class FlightController {
 
     // Create Flight
     @PostMapping
-    public ResponseEntity<Flight> createFlight(@RequestBody Flight flight) {
+    public ResponseEntity<Flight> createFlight(
+            @Valid @RequestBody Flight flight) {
 
         Flight createdFlight = flightService.createFlight(flight);
 
@@ -49,7 +52,7 @@ public class FlightController {
     @PutMapping("/{id}")
     public ResponseEntity<Flight> updateFlight(
             @PathVariable Long id,
-            @RequestBody Flight flight) {
+            @Valid @RequestBody Flight flight) {
 
         Flight updatedFlight = flightService.updateFlight(id, flight);
 
