@@ -1,6 +1,10 @@
 package airline_reservation_system.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
 
 @Entity
 @Table(name = "flights")
@@ -10,9 +14,11 @@ public class Flight {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotBlank(message = "Flight number is required")
     @Column(nullable = false, unique = true)
     private String flightNumber;
 
+    @NotBlank(message = "Airline is required")
     @Column(nullable = false)
     private String airline;
 
@@ -28,9 +34,12 @@ public class Flight {
     @JoinColumn(name = "aircraft_id", nullable = false)
     private Aircraft aircraft;
 
+    @NotNull(message = "Duration is required")
+    @Positive(message = "Duration must be greater than 0")
     @Column(nullable = false)
     private Integer durationMinutes;
 
+    @NotBlank(message = "Status is required")
     @Column(nullable = false)
     private String status;
 
