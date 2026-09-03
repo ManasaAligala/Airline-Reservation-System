@@ -48,6 +48,17 @@ public class FlightController {
         return ResponseEntity.ok(flight);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<Flight>> searchFlights(
+        @RequestParam String from,
+        @RequestParam String to,
+        @RequestParam String date) {
+
+    List<Flight> flights = flightService.searchFlights(from, to, date);
+
+    return ResponseEntity.ok(flights);
+    }
+
     // Update Flight
     @PutMapping("/{id}")
     public ResponseEntity<Flight> updateFlight(
