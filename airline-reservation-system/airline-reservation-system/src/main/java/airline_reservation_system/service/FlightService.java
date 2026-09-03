@@ -15,4 +15,5 @@ public interface FlightService {
     Flight updateFlight(Long id, Flight flight);
 
     void deleteFlight(Long id);
+    List<Flight> searchFlights(String from, String to, String date);
 }
