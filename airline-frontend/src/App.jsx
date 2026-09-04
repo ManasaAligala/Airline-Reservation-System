@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import FlightSearch from "./pages/FlightSearch";
+import FlightDetails from "./pages/FlightDetails";
 
 function App() {
   return (
@@ -20,9 +21,15 @@ function App() {
 
         <Route path="/flights/search" element={<FlightSearch />} />
 
+        <Route
+          path="/flights/:id"
+          element={<FlightDetails />}
+        />
+
       </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
