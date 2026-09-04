@@ -1,7 +1,10 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { searchFlights } from "../services/flightService";
 
 const FlightSearch = () => {
+
+    const navigate = useNavigate();
 
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
@@ -94,6 +97,7 @@ const FlightSearch = () => {
 
                 {flights.length > 0 && (
                     <div>
+
                         <h2>Available Flights</h2>
 
                         {flights.map((flight) => (
@@ -108,13 +112,21 @@ const FlightSearch = () => {
                                 </p>
 
                                 <p>
-                                    Duration:{" "}
-                                    {flight.durationMinutes} minutes
+                                    Duration: {flight.durationMinutes} minutes
                                 </p>
 
                                 <p>
                                     Status: {flight.status}
                                 </p>
+
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        navigate(`/flights/${flight.id}`)
+                                    }
+                                >
+                                    View Details
+                                </button>
 
                             </div>
                         ))}
@@ -137,3 +149,9 @@ const FlightSearch = () => {
 };
 
 export default FlightSearch;
+
+
+
+
+
+
