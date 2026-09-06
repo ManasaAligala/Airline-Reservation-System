@@ -8,6 +8,7 @@ public class AirlineReservationSystemApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AirlineReservationSystemApplication.class, args);
+		System.out.println("Backend working properly");
 	}
 
 }
