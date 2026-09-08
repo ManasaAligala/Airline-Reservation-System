@@ -7,4 +7,5 @@ import java.util.List;
 public interface SeatService {
 
     List<Seat> getAvailableSeats(Long flightId);
+    Seat selectSeat(Long seatId);
 }
