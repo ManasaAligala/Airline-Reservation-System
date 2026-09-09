@@ -5,6 +5,8 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import FlightSearch from "./pages/FlightSearch";
 import FlightDetails from "./pages/FlightDetails";
+import SeatSelection from "./pages/SeatSelection";
+import PassengerDetails from "./pages/PassengerDetails";
 
 function App() {
   return (
@@ -26,10 +28,23 @@ function App() {
           element={<FlightDetails />}
         />
 
-      </Routes>
+        <Route
+          path="/seat-selection"
+          element={<SeatSelection />}
+        />
+
+      
+
+      <Route
+    path="/passenger-details"
+    element={<PassengerDetails />}
+    />
+    </Routes>
     </BrowserRouter>
   );
 }
 
 export default App;
+
+
 
