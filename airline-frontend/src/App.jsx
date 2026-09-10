@@ -35,10 +35,10 @@ function App() {
 
       
 
-      <Route
-    path="/passenger-details"
-    element={<PassengerDetails />}
-    />
+        <Route
+          path="/passenger-details"
+          element={<PassengerDetails />}
+        />
     </Routes>
     </BrowserRouter>
   );
