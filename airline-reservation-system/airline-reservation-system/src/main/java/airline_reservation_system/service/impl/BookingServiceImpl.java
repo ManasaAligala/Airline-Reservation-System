@@ -19,13 +19,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking createBooking(Booking booking) {
 
-        if (booking.getBookingId() != null &&
-                bookingRepository.existsByBookingId(booking.getBookingId())) {
+    long bookingCount = bookingRepository.count();
 
-            throw new RuntimeException("Booking ID already exists");
-        }
+    String bookingId = "BK" + String.format("%03d", bookingCount + 1);
 
-        return bookingRepository.save(booking);
+    booking.setBookingId(bookingId);
+
+    return bookingRepository.save(booking);
     }
 
     @Override
