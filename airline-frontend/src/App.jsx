@@ -7,6 +7,7 @@ import FlightSearch from "./pages/FlightSearch";
 import FlightDetails from "./pages/FlightDetails";
 import SeatSelection from "./pages/SeatSelection";
 import PassengerDetails from "./pages/PassengerDetails";
+import MyBookings from "./pages/MyBookings";
 
 function App() {
   return (
@@ -22,6 +23,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/flights/search" element={<FlightSearch />} />
+
+        <Route path="/my-bookings" element={<MyBookings />} />
 
         <Route
           path="/flights/:id"
