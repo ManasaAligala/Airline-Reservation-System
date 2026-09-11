@@ -1,7 +1,9 @@
-
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const SeatSelection = () => {
+  const navigate = useNavigate();
+
   const [selectedSeat, setSelectedSeat] = useState(null);
 
   // Temporary seat data
@@ -48,17 +50,32 @@ const SeatSelection = () => {
       {/* Seat Legend */}
       <div style={styles.legend}>
         <div>
-          <span style={{ ...styles.legendBox, backgroundColor: "green" }}></span>
+          <span
+            style={{
+              ...styles.legendBox,
+              backgroundColor: "green",
+            }}
+          ></span>
           Available
         </div>
 
         <div>
-          <span style={{ ...styles.legendBox, backgroundColor: "red" }}></span>
+          <span
+            style={{
+              ...styles.legendBox,
+              backgroundColor: "red",
+            }}
+          ></span>
           Booked
         </div>
 
         <div>
-          <span style={{ ...styles.legendBox, backgroundColor: "blue" }}></span>
+          <span
+            style={{
+              ...styles.legendBox,
+              backgroundColor: "blue",
+            }}
+          ></span>
           Selected
         </div>
       </div>
@@ -88,7 +105,9 @@ const SeatSelection = () => {
                   ...styles.seat,
                   backgroundColor,
                   cursor:
-                    seat.status === "BOOKED" ? "not-allowed" : "pointer",
+                    seat.status === "BOOKED"
+                      ? "not-allowed"
+                      : "pointer",
                 }}
               >
                 {seat.seatNumber}
@@ -104,7 +123,10 @@ const SeatSelection = () => {
           <>
             <h3>Selected Seat: {selectedSeat}</h3>
 
-            <button style={styles.continueButton}>
+            <button
+              style={styles.continueButton}
+              onClick={() => navigate("/passenger-details")}
+            >
               Continue
             </button>
           </>
