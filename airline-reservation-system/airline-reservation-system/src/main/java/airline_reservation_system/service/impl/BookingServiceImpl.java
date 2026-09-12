@@ -19,13 +19,17 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking createBooking(Booking booking) {
 
-        long bookingCount = bookingRepository.count();
+    long bookingCount = bookingRepository.count();
 
-        String bookingId = "BK" + String.format("%03d", bookingCount + 1);
+    String bookingId = "BK" + String.format("%03d", bookingCount + 1);
 
-        booking.setBookingId(bookingId);
+    booking.setBookingId(bookingId);
 
-        return bookingRepository.save(booking);
+    booking.setBookingDate(java.time.LocalDateTime.now());
+
+    booking.setStatus("PENDING");
+
+    return bookingRepository.save(booking);
     }
 
     @Override
