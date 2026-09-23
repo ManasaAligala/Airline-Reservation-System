@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 
 function PassengerDetails() {
 
@@ -6,7 +7,8 @@ function PassengerDetails() {
         firstName: "",
         lastName: "",
         email: "",
-        phoneNumber: ""
+        phoneNumber: "",
+        age: ""
     });
 
     const handleChange = (e) => {
@@ -16,14 +18,59 @@ function PassengerDetails() {
         });
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        console.log("Passenger Details:", passenger);
+    try {
+        // Step 1: Create passenger
+        const passengerResponse = await axios.post(
+            "http://localhost:8080/api/passengers",
+            {
+                ...passenger,
+                seat: {
+                    id: 5
+                }
+            }
+        );
 
-        alert("Passenger details submitted successfully!");
-    };
+        const passengerId = passengerResponse.data.id;
 
+        console.log("Passenger Created:", passengerResponse.data);
+        console.log("Passenger ID:", passengerId);
+
+        // Step 2: Create booking
+        const bookingResponse = await axios.post(
+            "http://localhost:8080/api/bookings",
+            {
+                user: {
+                    id: 1
+                },
+                flight: {
+                    id: 12
+                },
+                passenger: {
+                    id: passengerId
+                },
+                seat: {
+                    id: 5
+                },
+                bookingDate: new Date().toISOString().slice(0, 19),
+                status: "PENDING"
+            }
+        );
+
+        console.log("Booking Created:", bookingResponse.data);
+
+        alert(
+            "Booking created successfully! Booking ID: " +
+            bookingResponse.data.bookingId
+        );
+
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Unable to complete booking.");
+    }
+};
     return (
         <div style={styles.page}>
 
@@ -93,6 +140,19 @@ function PassengerDetails() {
                             placeholder="Enter phone number"
                             required
                         />
+                    </div>
+
+                    <div style={styles.field}>
+                    <label>Age</label>
+
+                    <input
+                    type="number"
+                    name="age"
+                    value={passenger.age}
+                    onChange={handleChange}
+                    placeholder="Enter age"
+                    required
+                    />
                     </div>
 
                     <div style={styles.selectedSeat}>
