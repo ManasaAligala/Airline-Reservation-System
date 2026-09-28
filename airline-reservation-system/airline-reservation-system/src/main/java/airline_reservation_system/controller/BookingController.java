@@ -37,12 +37,25 @@ public class BookingController {
         );
     }
 
+    // Task 9 - Cancel Booking
+    @PutMapping("/cancel/{bookingId}")
+    public ResponseEntity<String> cancelBooking(
+            @PathVariable String bookingId) {
+
+        bookingService.cancelBooking(bookingId);
+
+        return ResponseEntity.ok(
+                "Booking " + bookingId + " cancelled successfully"
+        );
+    }
+
     // Task 7 - Booking History
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Booking>> getBookingsByUserId(
             @PathVariable Long userId) {
 
-        List<Booking> bookings = bookingService.getBookingsByUserId(userId);
+        List<Booking> bookings =
+                bookingService.getBookingsByUserId(userId);
 
         return ResponseEntity.ok(bookings);
     }
