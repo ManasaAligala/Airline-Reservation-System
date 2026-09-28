@@ -14,22 +14,26 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final EmailService emailService;
 
     public PaymentService(PaymentRepository paymentRepository,
-                          BookingRepository bookingRepository) {
+                          BookingRepository bookingRepository,
+                          EmailService emailService) {
+
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
+        this.emailService = emailService;
     }
 
     public Payment handlePaymentFailure(String paymentId) {
 
-    Payment payment = paymentRepository.findByPaymentId(paymentId)
-            .orElseThrow(() -> new RuntimeException(
-                    "Payment not found: " + paymentId));
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Payment not found: " + paymentId));
 
-    payment.setPaymentStatus("FAILED");
+        payment.setPaymentStatus("FAILED");
 
-    return paymentRepository.save(payment);
+        return paymentRepository.save(payment);
     }
 
     public List<Payment> getAllPayments() {
@@ -37,13 +41,17 @@ public class PaymentService {
     }
 
     public Payment getPaymentById(Long id) {
+
         return paymentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Payment not found"));
     }
 
     public Payment getPaymentByPaymentId(String paymentId) {
+
         return paymentRepository.findByPaymentId(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Payment not found"));
     }
 
     public Payment initiatePayment(String bookingId,
@@ -70,25 +78,54 @@ public class PaymentService {
 
         return paymentRepository.save(payment);
     }
+
     public Payment handlePaymentSuccess(String paymentId) {
 
-    Payment payment = paymentRepository.findByPaymentId(paymentId)
-            .orElseThrow(() -> new RuntimeException(
-                    "Payment not found: " + paymentId));
+        Payment payment = paymentRepository.findByPaymentId(paymentId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Payment not found: " + paymentId));
 
-    // Update payment status
-    payment.setPaymentStatus("SUCCESS");
+        // Update payment status
+        payment.setPaymentStatus("SUCCESS");
 
-    // Get the booking connected to this payment
-    Booking booking = payment.getBooking();
+        // Get the booking connected to this payment
+        Booking booking = payment.getBooking();
 
-    // Confirm the booking
-    booking.setStatus("CONFIRMED");
+        // Confirm the booking
+        booking.setStatus("CONFIRMED");
 
-    // Save the updated booking
-    bookingRepository.save(booking);
+        // Save the updated booking
+        bookingRepository.save(booking);
 
-    // Save and return the updated payment
-    return paymentRepository.save(payment);
-}
+        // Send payment confirmation email
+        if (booking.getPassenger() != null
+                && booking.getPassenger().getEmail() != null) {
+
+            String email = booking.getPassenger().getEmail();
+
+            String subject = "Payment Confirmation - "
+                    + payment.getPaymentId();
+
+            String message =
+                    "Dear " + booking.getPassenger().getFirstName() + ",\n\n"
+                    + "Your payment has been completed successfully.\n\n"
+                    + "Payment ID: " + payment.getPaymentId() + "\n"
+                    + "Booking ID: " + booking.getBookingId() + "\n"
+                    + "Amount: " + payment.getAmount() + "\n"
+                    + "Payment Method: " + payment.getPaymentMethod() + "\n"
+                    + "Payment Status: SUCCESS\n"
+                    + "Booking Status: CONFIRMED\n\n"
+                    + "Thank you for choosing our Airline Reservation System.\n\n"
+                    + "Have a safe journey!";
+
+            emailService.sendEmail(
+                    email,
+                    subject,
+                    message
+            );
+        }
+
+        // Save and return the updated payment
+        return paymentRepository.save(payment);
+    }
 }
