@@ -23,7 +23,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil, UserRepository userRepository) {
+    public JwtAuthenticationFilter(
+            JwtUtil jwtUtil,
+            UserRepository userRepository) {
+
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
     }
@@ -38,6 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         System.out.println("========== JWT FILTER EXECUTED ==========");
 
         String authHeader = request.getHeader("Authorization");
+
         System.out.println("Authorization Header: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -47,10 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        System.out.println("Token: " + token);
 
         try {
-
             String email = jwtUtil.extractEmail(token);
             String role = jwtUtil.extractRole(token);
 
@@ -58,7 +60,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             System.out.println("Role Extracted: " + role);
 
             if (email != null
-                    && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    && SecurityContextHolder.getContext()
+                            .getAuthentication() == null) {
 
                 User user = userRepository.findByEmail(email).orElse(null);
 
@@ -69,24 +72,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("Token Valid");
 
                     List<SimpleGrantedAuthority> authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_" + role));
+                            new SimpleGrantedAuthority("ROLE_" + role)
+                    );
 
                     System.out.println("Authorities: " + authorities);
 
+                    // Use email as the authentication principal
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
-                                    user,
+                                    email,
                                     null,
-                                    authorities);
+                                    authorities
+                            );
 
                     authentication.setDetails(
                             new WebAuthenticationDetailsSource()
-                                    .buildDetails(request));
+                                    .buildDetails(request)
+                    );
 
                     SecurityContextHolder.getContext()
                             .setAuthentication(authentication);
 
                     System.out.println("Authentication Set Successfully");
+
                 } else {
                     System.out.println("Token Validation Failed");
                 }

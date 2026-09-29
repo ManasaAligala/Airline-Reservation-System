@@ -1,12 +1,16 @@
 package airline_reservation_system.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import airline_reservation_system.entity.Booking;
 import airline_reservation_system.repository.BookingRepository;
 import airline_reservation_system.service.BookingService;
 import airline_reservation_system.service.EmailService;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class BookingServiceImpl implements BookingService {
@@ -22,27 +26,29 @@ public class BookingServiceImpl implements BookingService {
         this.emailService = emailService;
     }
 
+    // Create a new booking
     @Override
     public Booking createBooking(Booking booking) {
 
         long bookingCount = bookingRepository.count();
 
-        String bookingId = "BK" + String.format("%03d", bookingCount + 1);
+        String bookingId =
+                "BK" + String.format("%03d", bookingCount + 1);
 
         booking.setBookingId(bookingId);
-
-        booking.setBookingDate(java.time.LocalDateTime.now());
-
+        booking.setBookingDate(LocalDateTime.now());
         booking.setStatus("PENDING");
 
         return bookingRepository.save(booking);
     }
 
+    // Retrieve all bookings
     @Override
     public List<Booking> getAllBookings() {
         return bookingRepository.findAll();
     }
 
+    // Retrieve booking using database ID
     @Override
     public Booking getBookingById(Long id) {
 
@@ -51,6 +57,7 @@ public class BookingServiceImpl implements BookingService {
                         new RuntimeException("Booking not found"));
     }
 
+    // Retrieve booking using booking reference
     @Override
     public Booking getBookingByBookingId(String bookingId) {
 
@@ -59,12 +66,18 @@ public class BookingServiceImpl implements BookingService {
                         new RuntimeException("Booking not found"));
     }
 
+    // Confirm booking and send confirmation email
     @Override
     public void confirmBooking(String bookingId) {
 
         Booking booking = bookingRepository.findByBookingId(bookingId)
                 .orElseThrow(() ->
                         new RuntimeException("Booking not found"));
+
+        if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
+            throw new RuntimeException(
+                    "Cancelled booking cannot be confirmed");
+        }
 
         booking.setStatus("CONFIRMED");
 
@@ -80,7 +93,8 @@ public class BookingServiceImpl implements BookingService {
                     + booking.getBookingId();
 
             String message =
-                    "Dear " + booking.getPassenger().getFirstName() + ",\n\n"
+                    "Dear " + booking.getPassenger().getFirstName()
+                    + ",\n\n"
                     + "Your airline booking has been confirmed successfully.\n\n"
                     + "Booking ID: " + booking.getBookingId() + "\n"
                     + "Status: CONFIRMED\n\n"
@@ -91,14 +105,22 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    // Task 9 - Cancellation Notification
+    // Cancel booking and send cancellation email
     @Override
+    @Transactional
     public void cancelBooking(String bookingId) {
 
         Booking booking = bookingRepository.findByBookingId(bookingId)
                 .orElseThrow(() ->
                         new RuntimeException("Booking not found"));
 
+        // Prevent duplicate cancellation
+        if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
+            throw new RuntimeException(
+                    "This booking has already been cancelled");
+        }
+
+        // Update booking status
         booking.setStatus("CANCELLED");
 
         bookingRepository.save(booking);
@@ -113,10 +135,13 @@ public class BookingServiceImpl implements BookingService {
                     + booking.getBookingId();
 
             String message =
-                    "Dear " + booking.getPassenger().getFirstName() + ",\n\n"
+                    "Dear " + booking.getPassenger().getFirstName()
+                    + ",\n\n"
                     + "Your airline booking has been cancelled successfully.\n\n"
                     + "Booking ID: " + booking.getBookingId() + "\n"
                     + "Status: CANCELLED\n\n"
+                    + "Your refund status will be handled separately, "
+                    + "according to the applicable refund process.\n\n"
                     + "If you did not request this cancellation, "
                     + "please contact our support team.\n\n"
                     + "Thank you for using our Airline Reservation System.";
@@ -125,14 +150,15 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    // Task 7 - Booking History
+    // Retrieve booking history for a user
     @Override
     public List<Booking> getBookingsByUserId(Long userId) {
 
         return bookingRepository.findAll().stream()
-                .filter(booking -> booking.getUser() != null
+                .filter(booking ->
+                        booking.getUser() != null
                         && booking.getUser().getId() != null
                         && booking.getUser().getId().equals(userId))
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
     }
 }
