@@ -1,0 +1,122 @@
+.admin-reports-container {
+    padding: 30px;
+    background-color: #f5f7fb;
+    min-height: 100vh;
+}
+
+.admin-reports-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-reports-header h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.admin-reports-header p {
+    color: #666;
+    margin-top: 8px;
+}
+
+.back-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    font-size: 14px;
+}
+
+.back-button:hover {
+    background-color: #555;
+}
+
+.admin-reports-container h2 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+.report-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.report-card {
+    background-color: white;
+    padding: 22px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.report-card h3 {
+    margin: 0;
+    color: #555;
+    font-size: 16px;
+}
+
+.report-card p {
+    margin-top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.report-table-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.report-table th {
+    background-color: #f1f3f6;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status.refunded {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.report-message {
+    text-align: center;
+    font-size: 18px;
+}
+
+.report-error {
+    color: red;
+    margin-bottom: 20px;
+}
