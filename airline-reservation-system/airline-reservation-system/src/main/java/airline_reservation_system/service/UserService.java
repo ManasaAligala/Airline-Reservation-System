@@ -1,5 +1,7 @@
 package airline_reservation_system.service;
 
+import java.util.List;
+
 import airline_reservation_system.dto.AuthResponse;
 import airline_reservation_system.dto.ChangePasswordRequest;
 import airline_reservation_system.dto.LoginRequest;
@@ -16,6 +18,9 @@ public interface UserService {
     // Get user profile using email
     User getUserByEmail(String email);
 
+    // Get all users for Admin User Management
+    List<User> getAllUsers();
+
     // Update the logged-in user's profile
     User updateProfile(String email, User updatedUser);
 
@@ -25,3 +30,4 @@ public interface UserService {
             ChangePasswordRequest request
     );
 }
+

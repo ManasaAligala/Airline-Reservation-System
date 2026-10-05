@@ -1,5 +1,7 @@
 package airline_reservation_system.controller;
 
+import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,6 +42,7 @@ public class UserController {
     @GetMapping("/profile")
     public User getProfile(Authentication authentication) {
         String email = authentication.getName();
+
         return userService.getUserByEmail(email);
     }
 
@@ -67,6 +70,12 @@ public class UserController {
         return "Password changed successfully";
     }
 
+    // Get all users for Admin User Management
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
     // Admin dashboard
     @GetMapping("/admin/dashboard")
     public String adminDashboard() {
@@ -79,3 +88,4 @@ public class UserController {
         return "Welcome Customer! You have CUSTOMER access.";
     }
 }
+

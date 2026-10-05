@@ -17,15 +17,28 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
+    // Create a new booking
     @PostMapping
     public ResponseEntity<Booking> createBooking(
             @RequestBody Booking booking) {
 
-        Booking createdBooking = bookingService.createBooking(booking);
+        Booking createdBooking =
+                bookingService.createBooking(booking);
 
         return ResponseEntity.ok(createdBooking);
     }
 
+    // Get all bookings for Admin Booking Management
+    @GetMapping
+    public ResponseEntity<List<Booking>> getAllBookings() {
+
+        List<Booking> bookings =
+                bookingService.getAllBookings();
+
+        return ResponseEntity.ok(bookings);
+    }
+
+    // Confirm booking
     @PutMapping("/confirm/{bookingId}")
     public ResponseEntity<String> confirmBooking(
             @PathVariable String bookingId) {
@@ -33,7 +46,8 @@ public class BookingController {
         bookingService.confirmBooking(bookingId);
 
         return ResponseEntity.ok(
-                "Booking " + bookingId + " confirmed successfully"
+                "Booking " + bookingId
+                        + " confirmed successfully"
         );
     }
 
@@ -45,7 +59,8 @@ public class BookingController {
         bookingService.cancelBooking(bookingId);
 
         return ResponseEntity.ok(
-                "Booking " + bookingId + " cancelled successfully"
+                "Booking " + bookingId
+                        + " cancelled successfully"
         );
     }
 
@@ -60,3 +75,4 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 }
+
