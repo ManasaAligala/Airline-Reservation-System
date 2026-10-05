@@ -1,0 +1,100 @@
+.admin-schedules-container {
+    min-height: 100vh;
+    padding: 30px;
+    background-color: #f5f7fa;
+}
+
+.admin-schedules-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-schedules-header h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.admin-schedules-header p {
+    margin-top: 8px;
+    color: #666;
+}
+
+.back-button {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.back-button:hover {
+    background-color: #555;
+}
+
+.schedule-table-container {
+    width: 100%;
+    overflow-x: auto;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+}
+
+.schedule-table th {
+    background-color: #f0f2f5;
+    padding: 14px;
+    text-align: left;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.schedule-table td {
+    padding: 14px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.schedule-table tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.schedule-status,
+.flight-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.schedule-status {
+    background-color: #e8f0fe;
+}
+
+.flight-status {
+    background-color: #fff3cd;
+}
+
+.message {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: #b00020;
+    background-color: #ffe6e6;
+    border-radius: 8px;
+}
