@@ -1,5 +1,6 @@
 package airline_reservation_system.service.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -68,6 +69,12 @@ public class UserServiceImpl implements UserService {
                                 "User not found with email: " + email
                         )
                 );
+    }
+
+    // Get all users for Admin User Management
+    @Override
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
     // Update the logged-in user's profile
