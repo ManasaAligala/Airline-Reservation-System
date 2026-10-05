@@ -44,7 +44,8 @@ public class FlightServiceImpl implements FlightService {
                         );
 
         return schedules.stream()
-                .map(FlightSchedule::getFlight)
+                .map(schedule -> schedule != null ? schedule.getFlight() : null)
+                .filter(java.util.Objects::nonNull)
                 .distinct()
                 .toList();
     }
