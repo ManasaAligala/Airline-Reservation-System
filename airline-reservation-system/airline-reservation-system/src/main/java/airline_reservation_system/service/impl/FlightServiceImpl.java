@@ -1,69 +1,57 @@
+
 package airline_reservation_system.service.impl;
 
+import airline_reservation_system.client.FlightScheduleClient;
+import airline_reservation_system.dto.FlightSearchResponse;
 import airline_reservation_system.entity.Flight;
-import airline_reservation_system.entity.FlightSchedule;
 import airline_reservation_system.repository.FlightRepository;
-import airline_reservation_system.repository.FlightScheduleRepository;
 import airline_reservation_system.service.FlightService;
+
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class FlightServiceImpl implements FlightService {
 
     private final FlightRepository flightRepository;
-    private final FlightScheduleRepository flightScheduleRepository;
+    private final FlightScheduleClient flightScheduleClient;
 
     public FlightServiceImpl(
             FlightRepository flightRepository,
-            FlightScheduleRepository flightScheduleRepository) {
+            FlightScheduleClient flightScheduleClient) {
 
         this.flightRepository = flightRepository;
-        this.flightScheduleRepository = flightScheduleRepository;
+        this.flightScheduleClient = flightScheduleClient;
     }
 
-    // Search Flights
+    // Search flights using the external Flight Schedule Server
     @Override
-    public List<Flight> searchFlights(String from, String to, String date) {
+    public List<FlightSearchResponse> searchFlights(
+            String from,
+            String to,
+            String date) {
 
-        LocalDate searchDate = LocalDate.parse(date);
-
-        LocalDateTime startOfDay = searchDate.atStartOfDay();
-        LocalDateTime startOfNextDay = searchDate.plusDays(1).atStartOfDay();
-
-        List<FlightSchedule> schedules =
-                flightScheduleRepository
-                        .findByFlight_DepartureAirport_CodeAndFlight_ArrivalAirport_CodeAndDepartureTimeGreaterThanEqualAndDepartureTimeLessThan(
-                                from,
-                                to,
-                                startOfDay,
-                                startOfNextDay
-                        );
-
-        return schedules.stream()
-                .map(schedule -> schedule != null ? schedule.getFlight() : null)
-                .filter(java.util.Objects::nonNull)
-                .distinct()
-                .toList();
+        return flightScheduleClient.searchFlights(
+                from,
+                to,
+                date
+        );
     }
 
     // Create Flight
     @Override
     public Flight createFlight(Flight flight) {
 
-        if (flightRepository.existsByFlightNumber(flight.getFlightNumber())) {
+        if (flightRepository.existsByFlightNumber(
+                flight.getFlightNumber())) {
             throw new RuntimeException("Flight number already exists");
         }
 
         if (flight.getDepartureAirport().getId()
                 .equals(flight.getArrivalAirport().getId())) {
-
             throw new RuntimeException(
-                    "Departure and arrival airports cannot be the same"
-            );
+                    "Departure and arrival airports cannot be the same");
         }
 
         return flightRepository.save(flight);
@@ -81,8 +69,8 @@ public class FlightServiceImpl implements FlightService {
 
         return flightRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Flight not found with id: " + id)
-                );
+                        new RuntimeException(
+                                "Flight not found with id: " + id));
     }
 
     // Update Flight
@@ -91,8 +79,8 @@ public class FlightServiceImpl implements FlightService {
 
         Flight existingFlight = flightRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Flight not found with id: " + id)
-                );
+                        new RuntimeException(
+                                "Flight not found with id: " + id));
 
         existingFlight.setFlightNumber(flight.getFlightNumber());
         existingFlight.setAirline(flight.getAirline());
@@ -111,8 +99,7 @@ public class FlightServiceImpl implements FlightService {
 
         if (!flightRepository.existsById(id)) {
             throw new RuntimeException(
-                    "Flight not found with id: " + id
-            );
+                    "Flight not found with id: " + id);
         }
 
         flightRepository.deleteById(id);

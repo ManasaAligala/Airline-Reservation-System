@@ -1,3 +1,4 @@
+
 package airline_reservation_system.security;
 
 import java.io.IOException;
@@ -26,9 +27,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     public JwtAuthenticationFilter(
             JwtUtil jwtUtil,
             UserRepository userRepository) {
-
         this.jwtUtil = jwtUtil;
         this.userRepository = userRepository;
+    }
+
+    // Skip JWT checking for login, registration and browser preflight
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request)
+            throws ServletException {
+
+        String path = request.getServletPath();
+
+        return "OPTIONS".equalsIgnoreCase(request.getMethod())
+                || "/api/users/login".equals(path)
+                || "/api/users/register".equals(path);
     }
 
     @Override
@@ -38,14 +50,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        System.out.println("========== JWT FILTER EXECUTED ==========");
-
         String authHeader = request.getHeader("Authorization");
 
-        System.out.println("Authorization Header: " + authHeader);
-
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("No Bearer Token Found");
             filterChain.doFilter(request, response);
             return;
         }
@@ -56,28 +63,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String email = jwtUtil.extractEmail(token);
             String role = jwtUtil.extractRole(token);
 
-            System.out.println("Email Extracted: " + email);
-            System.out.println("Role Extracted: " + role);
-
-            if (email != null
-                    && SecurityContextHolder.getContext()
-                            .getAuthentication() == null) {
+            if (email != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 User user = userRepository.findByEmail(email).orElse(null);
 
-                System.out.println("User Found: " + (user != null));
-
                 if (user != null && jwtUtil.validateToken(token, email)) {
-
-                    System.out.println("Token Valid");
 
                     List<SimpleGrantedAuthority> authorities = List.of(
                             new SimpleGrantedAuthority("ROLE_" + role)
                     );
 
-                    System.out.println("Authorities: " + authorities);
-
-                    // Use email as the authentication principal
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
                                     email,
@@ -92,16 +88,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     SecurityContextHolder.getContext()
                             .setAuthentication(authentication);
-
-                    System.out.println("Authentication Set Successfully");
-
-                } else {
-                    System.out.println("Token Validation Failed");
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("JWT Exception: " + e.getMessage());
+            // Invalid token: continue without setting authentication.
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

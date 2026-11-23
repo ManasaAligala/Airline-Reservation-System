@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
@@ -13,13 +14,20 @@ const FlightDetails = () => {
   useEffect(() => {
     const fetchFlightDetails = async () => {
       try {
+        const token = localStorage.getItem("token");
+
         const response = await axios.get(
-          `http://localhost:8080/api/flights/${id}`
+          `http://localhost:8080/api/flights/${id}`,
+          {
+            headers: token
+              ? { Authorization: `Bearer ${token}` }
+              : {},
+          }
         );
 
         setFlight(response.data);
       } catch (error) {
-        console.error(error);
+        console.error("Flight details error:", error);
         setError("Unable to load flight details.");
       } finally {
         setLoading(false);
@@ -41,6 +49,15 @@ const FlightDetails = () => {
     return <p>Flight not found.</p>;
   }
 
+  const handleSelectSeat = () => {
+    navigate("/seat-selection", {
+      state: {
+        flightId: flight.id,
+        flight: flight,
+      },
+    });
+  };
+
   return (
     <div>
       <h1>Flight Details</h1>
@@ -49,8 +66,7 @@ const FlightDetails = () => {
         <h2>{flight.flightNumber}</h2>
 
         <p>
-          <strong>Airline:</strong>{" "}
-          {flight.airline}
+          <strong>Airline:</strong> {flight.airline}
         </p>
 
         <p>
@@ -71,25 +87,19 @@ const FlightDetails = () => {
         </p>
 
         <p>
-          <strong>Status:</strong>{" "}
-          {flight.status}
+          <strong>Status:</strong> {flight.status}
         </p>
 
         <p>
-          <strong>Aircraft:</strong>{" "}
-          {flight.aircraft?.model}
+          <strong>Aircraft:</strong> {flight.aircraft?.model}
         </p>
 
         <p>
-          <strong>Capacity:</strong>{" "}
-          {flight.aircraft?.capacity}
+          <strong>Capacity:</strong> {flight.aircraft?.capacity}
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={() => navigate("/seat-selection")}
-      >
+      <button type="button" onClick={handleSelectSeat}>
         Select Seat
       </button>
 

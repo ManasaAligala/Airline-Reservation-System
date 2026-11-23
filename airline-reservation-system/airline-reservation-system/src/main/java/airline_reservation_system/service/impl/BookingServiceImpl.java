@@ -1,3 +1,4 @@
+
 package airline_reservation_system.service.impl;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class BookingServiceImpl implements BookingService {
 
     // Create a new booking
     @Override
+    @Transactional
     public Booking createBooking(Booking booking) {
 
         long bookingCount = bookingRepository.count();
@@ -61,7 +63,8 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Booking not found"));
+                        new RuntimeException(
+                                "Booking not found with id: " + id));
     }
 
     // Retrieve booking using booking reference
@@ -70,29 +73,27 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingRepository.findByBookingId(bookingId)
                 .orElseThrow(() ->
-                        new RuntimeException("Booking not found"));
+                        new RuntimeException(
+                                "Booking not found: " + bookingId));
     }
 
     // Confirm booking and send confirmation email
     @Override
+    @Transactional
     public void confirmBooking(String bookingId) {
 
         Booking booking = bookingRepository.findByBookingId(bookingId)
                 .orElseThrow(() ->
                         new RuntimeException("Booking not found"));
 
-        // Prevent cancelled booking from being confirmed
         if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-
             throw new RuntimeException(
                     "Cancelled booking cannot be confirmed");
         }
 
         booking.setStatus("CONFIRMED");
-
         bookingRepository.save(booking);
 
-        // Send booking confirmation email
         if (booking.getPassenger() != null
                 && booking.getPassenger().getEmail() != null) {
 
@@ -113,15 +114,11 @@ public class BookingServiceImpl implements BookingService {
                     + "Thank you for choosing our Airline Reservation System.\n\n"
                     + "Have a safe journey!";
 
-            emailService.sendEmail(
-                    email,
-                    subject,
-                    message
-            );
+            emailService.sendEmail(email, subject, message);
         }
     }
 
-    // Cancel booking, release seat, and send cancellation email
+    // Cancel booking and release the seat safely
     @Override
     @Transactional
     public void cancelBooking(String bookingId) {
@@ -130,19 +127,15 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() ->
                         new RuntimeException("Booking not found"));
 
-        // Prevent duplicate cancellation
         if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) {
-
             throw new RuntimeException(
                     "This booking has already been cancelled");
         }
 
-        // Update booking status
+        // Update booking status first
         booking.setStatus("CANCELLED");
-
         bookingRepository.save(booking);
 
-        // Release the seat after cancellation
         if (booking.getSeat() != null) {
 
             Long seatId = booking.getSeat().getId();
@@ -152,27 +145,39 @@ public class BookingServiceImpl implements BookingService {
                             new RuntimeException(
                                     "Seat not found with ID: " + seatId));
 
-            // Temporary debug messages
-            System.out.println(
-                    "DEBUG - Seat ID: " + seat.getId());
+            // Check whether another active booking uses this seat
+            boolean anotherActiveBookingExists =
+                    bookingRepository.findAll().stream()
+                            .anyMatch(otherBooking ->
+                                    !otherBooking.getId().equals(
+                                            booking.getId())
+                                    && otherBooking.getSeat() != null
+                                    && otherBooking.getSeat().getId()
+                                            .equals(seatId)
+                                    && ("PENDING".equalsIgnoreCase(
+                                                otherBooking.getStatus())
+                                        || "CONFIRMED".equalsIgnoreCase(
+                                                otherBooking.getStatus())));
 
-            System.out.println(
-                    "DEBUG - Seat Number: " + seat.getSeatNumber());
+            if (anotherActiveBookingExists) {
 
-            System.out.println(
-                    "DEBUG - Old Seat Status: " + seat.getStatus());
+                // Do not release a seat used by another active booking
+                seat.setStatus(SeatStatus.BOOKED);
+                seatRepository.save(seat);
 
-            // Change seat status to AVAILABLE
-            seat.setStatus(SeatStatus.AVAILABLE);
+                System.out.println(
+                        "Seat " + seat.getSeatNumber()
+                        + " remains BOOKED by another active booking.");
 
-            System.out.println(
-                    "DEBUG - New Seat Status: " + seat.getStatus());
+            } else {
 
-            // Save the updated seat immediately
-            seatRepository.saveAndFlush(seat);
+                seat.setStatus(SeatStatus.AVAILABLE);
+                seatRepository.save(seat);
 
-            System.out.println(
-                    "DEBUG - Seat saved successfully");
+                System.out.println(
+                        "Seat " + seat.getSeatNumber()
+                        + " is now AVAILABLE.");
+            }
         }
 
         // Send cancellation email
@@ -193,19 +198,9 @@ public class BookingServiceImpl implements BookingService {
                     + booking.getBookingId()
                     + "\n"
                     + "Status: CANCELLED\n\n"
-                    + "Your seat has been released and is now available "
-                    + "for booking.\n\n"
-                    + "Your refund status will be handled separately, "
-                    + "according to the applicable refund process.\n\n"
-                    + "If you did not request this cancellation, "
-                    + "please contact our support team.\n\n"
                     + "Thank you for using our Airline Reservation System.";
 
-            emailService.sendEmail(
-                    email,
-                    subject,
-                    message
-            );
+            emailService.sendEmail(email, subject, message);
         }
     }
 

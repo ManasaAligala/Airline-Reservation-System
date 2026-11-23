@@ -1,5 +1,10 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Authentication and route protection
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// Customer Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -11,6 +16,7 @@ import MyBookings from "./pages/MyBookings";
 import Ticket from "./pages/Ticket";
 import Profile from "./pages/Profile";
 
+// Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminBookings from "./pages/AdminBookings";
@@ -23,19 +29,10 @@ import AdminPricing from "./pages/AdminPricing";
 import AdminReports from "./pages/AdminReports";
 
 function App() {
-
     return (
-
         <BrowserRouter>
-
             <Routes>
-
-                {/* Normal User Routes */}
-
-                <Route
-                    path="/"
-                    element={<FlightSearch />}
-                />
+                {/* ================= PUBLIC ROUTES ================= */}
 
                 <Route
                     path="/login"
@@ -47,101 +44,123 @@ function App() {
                     element={<Register />}
                 />
 
-                <Route
-                    path="/dashboard"
-                    element={<Dashboard />}
-                />
+                {/* ================= CUSTOMER ROUTES ================= */}
+
+                <Route element={<ProtectedRoute />}>
+                    <Route
+                        path="/"
+                        element={<FlightSearch />}
+                    />
+
+                    <Route
+                        path="/dashboard"
+                        element={<Dashboard />}
+                    />
+
+                    <Route
+                        path="/profile"
+                        element={<Profile />}
+                    />
+
+                    <Route
+                        path="/flights/search"
+                        element={<FlightSearch />}
+                    />
+
+                    <Route
+                        path="/flights/:id"
+                        element={<FlightDetails />}
+                    />
+
+                    <Route
+                        path="/seat-selection"
+                        element={<SeatSelection />}
+                    />
+
+                    <Route
+                        path="/passenger-details"
+                        element={<PassengerDetails />}
+                    />
+
+                    <Route
+                        path="/my-bookings"
+                        element={<MyBookings />}
+                    />
+
+                    <Route
+                        path="/ticket/:id"
+                        element={<Ticket />}
+                    />
+                </Route>
+
+                {/* ================= ADMIN ROUTES ================= */}
 
                 <Route
-                    path="/profile"
-                    element={<Profile />}
-                />
+                    element={
+                        <ProtectedRoute allowedRoles={["ADMIN"]} />
+                    }
+                >
+                    <Route
+                        path="/admin-dashboard"
+                        element={<AdminDashboard />}
+                    />
+
+                    <Route
+                        path="/admin/users"
+                        element={<AdminUsers />}
+                    />
+
+                    <Route
+                        path="/admin/bookings"
+                        element={<AdminBookings />}
+                    />
+
+                    <Route
+                        path="/admin/passengers"
+                        element={<AdminPassengers />}
+                    />
+
+                    <Route
+                        path="/admin/flights"
+                        element={<AdminFlights />}
+                    />
+
+                    <Route
+                        path="/admin/airports"
+                        element={<AdminAirports />}
+                    />
+
+                    <Route
+                        path="/admin/aircraft"
+                        element={<AdminAircraft />}
+                    />
+
+                    <Route
+                        path="/admin/schedules"
+                        element={<AdminSchedules />}
+                    />
+
+                    <Route
+                        path="/admin/pricing"
+                        element={<AdminPricing />}
+                    />
+
+                    <Route
+                        path="/admin/reports"
+                        element={<AdminReports />}
+                    />
+                </Route>
+
+                {/* ================= INVALID ROUTES ================= */}
 
                 <Route
-                    path="/flights/search"
-                    element={<FlightSearch />}
+                    path="*"
+                    element={<Navigate to="/" replace />}
                 />
-
-                <Route
-                    path="/flights/:id"
-                    element={<FlightDetails />}
-                />
-
-                <Route
-                    path="/seat-selection"
-                    element={<SeatSelection />}
-                />
-
-                <Route
-                    path="/passenger-details"
-                    element={<PassengerDetails />}
-                />
-
-                <Route
-                    path="/my-bookings"
-                    element={<MyBookings />}
-                />
-
-                <Route
-                    path="/ticket/:id"
-                    element={<Ticket />}
-                />
-
-                {/* Sprint 8 - Admin Routes */}
-
-                <Route
-                    path="/admin-dashboard"
-                    element={<AdminDashboard />}
-                />
-
-                <Route
-                    path="/admin/users"
-                    element={<AdminUsers />}
-                />
-
-                <Route
-                    path="/admin/bookings"
-                    element={<AdminBookings />}
-                />
-
-                <Route
-                    path="/admin/passengers"
-                    element={<AdminPassengers />}
-                />
-
-                <Route
-                    path="/admin/flights"
-                    element={<AdminFlights />}
-                />
-
-                <Route
-                    path="/admin/airports"
-                    element={<AdminAirports />}
-                />
-
-                <Route
-                    path="/admin/aircraft"
-                    element={<AdminAircraft />}
-                />
-
-                <Route
-                    path="/admin/schedules"
-                    element={<AdminSchedules />}
-                />
-
-                <Route 
-                    path="/admin/pricing"
-                    element={<AdminPricing />}
-                />
-
-                <Route path="/admin/reports" element={<AdminReports />} />
-
             </Routes>
-
         </BrowserRouter>
     );
 }
 
 export default App;
-
 

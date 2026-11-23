@@ -1,6 +1,8 @@
+
 package airline_reservation_system.service;
 
 import airline_reservation_system.entity.Flight;
+import airline_reservation_system.dto.FlightSearchResponse;
 
 import java.util.List;
 
@@ -15,5 +17,10 @@ public interface FlightService {
     Flight updateFlight(Long id, Flight flight);
 
     void deleteFlight(Long id);
-    List<Flight> searchFlights(String from, String to, String date);
+
+    List<FlightSearchResponse> searchFlights(
+            String from,
+            String to,
+            String date
+    );
 }

@@ -2,6 +2,7 @@ package airline_reservation_system.controller;
 
 import airline_reservation_system.entity.Flight;
 import airline_reservation_system.service.FlightService;
+import airline_reservation_system.dto.FlightSearchResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -49,12 +50,12 @@ public class FlightController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Flight>> searchFlights(
+    public ResponseEntity<List<FlightSearchResponse>> searchFlights(
         @RequestParam String from,
         @RequestParam String to,
         @RequestParam String date) {
 
-    List<Flight> flights = flightService.searchFlights(from, to, date);
+    List<FlightSearchResponse> flights = flightService.searchFlights(from, to, date);
 
     return ResponseEntity.ok(flights);
     }

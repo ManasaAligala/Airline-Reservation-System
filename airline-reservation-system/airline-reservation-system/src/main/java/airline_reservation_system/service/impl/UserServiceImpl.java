@@ -1,8 +1,10 @@
+
 package airline_reservation_system.service.impl;
 
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import airline_reservation_system.dto.AuthResponse;
@@ -18,23 +20,32 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(
             UserRepository userRepository,
-            JwtUtil jwtUtil) {
+            JwtUtil passwordEncoder,
+            PasswordEncoder passwordEncoderBean) {
 
         this.userRepository = userRepository;
-        this.jwtUtil = jwtUtil;
+        this.jwtUtil = passwordEncoder;
+        this.passwordEncoder = passwordEncoderBean;
     }
 
     // Register a new user
     @Override
     public User registerUser(User user) {
+
         user.setRole("CUSTOMER");
+
+        user.setPassword(
+                passwordEncoder.encode(user.getPassword())
+        );
+
         return userRepository.save(user);
     }
 
-    // Login user
+    // Login user - supports old and new passwords
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
 
@@ -47,7 +58,41 @@ public class UserServiceImpl implements UserService {
 
         User user = optionalUser.get();
 
-        if (!user.getPassword().equals(loginRequest.getPassword())) {
+        String enteredPassword = loginRequest.getPassword();
+        String storedPassword = user.getPassword();
+
+        if (enteredPassword == null || storedPassword == null) {
+            throw new RuntimeException("Invalid password");
+        }
+
+        boolean passwordMatches;
+
+        // Check whether password is already BCrypt encrypted
+        if (storedPassword.startsWith("$2a$")
+                || storedPassword.startsWith("$2b$")
+                || storedPassword.startsWith("$2y$")) {
+
+            passwordMatches = passwordEncoder.matches(
+                    enteredPassword,
+                    storedPassword
+            );
+
+        } else {
+
+            // Support old plain-text passwords
+            passwordMatches = storedPassword.equals(enteredPassword);
+
+            // Encrypt old password after successful login
+            if (passwordMatches) {
+                user.setPassword(
+                        passwordEncoder.encode(enteredPassword)
+                );
+
+                userRepository.save(user);
+            }
+        }
+
+        if (!passwordMatches) {
             throw new RuntimeException("Invalid password");
         }
 
@@ -59,7 +104,7 @@ public class UserServiceImpl implements UserService {
         return new AuthResponse("Login Successful", token);
     }
 
-    // Retrieve a user's profile using email
+    // Retrieve user profile
     @Override
     public User getUserByEmail(String email) {
 
@@ -71,88 +116,80 @@ public class UserServiceImpl implements UserService {
                 );
     }
 
-    // Get all users for Admin User Management
+    // Get all users
     @Override
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
-    // Update the logged-in user's profile
+    // Update profile
     @Override
     public User updateProfile(String email, User updatedUser) {
 
-        User existingUser = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException(
-                                "User not found with email: " + email
-                        )
-                );
+        User existingUser = getUserByEmail(email);
 
-        // Update first name when provided
         if (updatedUser.getFirstName() != null) {
             existingUser.setFirstName(updatedUser.getFirstName());
         }
 
-        // Update last name when provided
         if (updatedUser.getLastName() != null) {
             existingUser.setLastName(updatedUser.getLastName());
         }
 
-        // Update phone number when provided
         if (updatedUser.getPhoneNumber() != null) {
             existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
         }
 
-        // Email, password, and role cannot be changed here
         return userRepository.save(existingUser);
     }
 
-    // Change the logged-in user's password
+    // Change password
     @Override
     public void changePassword(
             String email,
             ChangePasswordRequest request) {
 
-        // Find the logged-in user
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found")
-                );
+        User user = getUserByEmail(email);
 
-        // Check whether the current password is correct
-        if (request.getCurrentPassword() == null
-                || !user.getPassword().equals(
-                        request.getCurrentPassword())) {
+        String currentPassword = request.getCurrentPassword();
+
+        if (currentPassword == null
+                || !passwordEncoder.matches(
+                        currentPassword,
+                        user.getPassword())) {
 
             throw new RuntimeException(
                     "Current password is incorrect"
             );
         }
 
-        // Validate the new password
-        if (request.getNewPassword() == null
-                || request.getNewPassword().trim().isEmpty()) {
+        String newPassword = request.getNewPassword();
 
+        if (newPassword == null || newPassword.trim().isEmpty()) {
             throw new RuntimeException(
                     "New password cannot be empty"
             );
         }
 
-        if (request.getNewPassword().length() < 8) {
+        if (newPassword.length() < 8) {
             throw new RuntimeException(
                     "New password must contain at least 8 characters"
             );
         }
 
-        // Prevent setting the same password again
-        if (user.getPassword().equals(request.getNewPassword())) {
+        if (passwordEncoder.matches(
+                newPassword,
+                user.getPassword())) {
+
             throw new RuntimeException(
                     "New password must be different from the current password"
             );
         }
 
-        // Save the new password
-        user.setPassword(request.getNewPassword());
+        user.setPassword(
+                passwordEncoder.encode(newPassword)
+        );
+
         userRepository.save(user);
     }
 }

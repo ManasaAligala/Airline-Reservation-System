@@ -1,3 +1,4 @@
+
 package airline_reservation_system.config;
 
 import java.util.List;
@@ -7,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -28,34 +31,34 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
-            // Disable CSRF for the stateless REST API
             .csrf(csrf -> csrf.disable())
 
-            // Enable CORS
             .cors(cors ->
                 cors.configurationSource(corsConfigurationSource())
             )
 
-            // Do not create HTTP sessions
             .sessionManagement(session ->
                 session.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS
                 )
             )
 
-            // Configure API permissions
             .authorizeHttpRequests(auth -> auth
 
                 // Public APIs
                 .requestMatchers(
                     "/api/users/register",
                     "/api/users/login"
-                )
-                .permitAll()
+                ).permitAll()
 
                 // ADMIN-only APIs
                 .requestMatchers("/api/users/admin/**")
@@ -65,44 +68,35 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/customer/**")
                 .hasRole("CUSTOMER")
 
-                // Logged-in users can access their profile
+                // Logged-in users
                 .requestMatchers("/api/users/profile")
                 .authenticated()
 
-                // Only ADMIN can add airports
+                // ADMIN airport permissions
                 .requestMatchers(
                     HttpMethod.POST,
                     "/api/airports/**"
-                )
-                .hasRole("ADMIN")
+                ).hasRole("ADMIN")
 
-                // Only ADMIN can update airports
                 .requestMatchers(
                     HttpMethod.PUT,
                     "/api/airports/**"
-                )
-                .hasRole("ADMIN")
+                ).hasRole("ADMIN")
 
-                // Only ADMIN can delete airports
                 .requestMatchers(
                     HttpMethod.DELETE,
                     "/api/airports/**"
-                )
-                .hasRole("ADMIN")
+                ).hasRole("ADMIN")
 
-                // ADMIN and CUSTOMER can view airports
+                // Airport viewing permissions
                 .requestMatchers(
                     HttpMethod.GET,
                     "/api/airports/**"
-                )
-                .hasAnyRole("ADMIN", "CUSTOMER")
+                ).hasAnyRole("ADMIN", "CUSTOMER")
 
-                // Preserve existing permissions for other APIs
-                .anyRequest()
-                .permitAll()
+                .anyRequest().permitAll()
             )
 
-            // Register JWT authentication filter
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class

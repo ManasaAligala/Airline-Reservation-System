@@ -1,11 +1,7 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { searchFlights } from "../services/flightService";
 
 const FlightSearch = () => {
-
-    const navigate = useNavigate();
-
     const [from, setFrom] = useState("");
     const [to, setTo] = useState("");
     const [date, setDate] = useState("");
@@ -14,141 +10,193 @@ const FlightSearch = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // Supported Indian airport codes and their cities
+    const airportCityMap = {
+        HYD: "Hyderabad",
+        DEL: "Delhi",
+        BLR: "Bangalore",
+        BOM: "Mumbai",
+        CCU: "Kolkata",
+        MAA: "Chennai"
+    };
+
+    // Get today's date
+    const getToday = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    };
+
+    const [minDate] = useState(getToday);
+
+    // Search flights from the separate flight schedule database
     const handleSearch = async (e) => {
         e.preventDefault();
 
-        setLoading(true);
         setError("");
         setFlights([]);
 
+        const fromCode = from.trim().toUpperCase();
+        const toCode = to.trim().toUpperCase();
+
+        // Validate required fields
+        if (!fromCode || !toCode || !date) {
+            setError("Please enter departure, destination, and travel date.");
+            return;
+        }
+
+        // Validate airport codes
+        if (
+            !/^[A-Z]{3}$/.test(fromCode) ||
+            !/^[A-Z]{3}$/.test(toCode)
+        ) {
+            setError("Please enter valid 3-letter airport codes, such as HYD or DEL.");
+            return;
+        }
+
+        // Get city names
+        const fromCity = airportCityMap[fromCode];
+        const toCity = airportCityMap[toCode];
+
+        if (!fromCity || !toCity) {
+            setError("Please enter a supported Indian airport code: HYD, DEL, BLR, BOM, CCU or MAA.");
+            return;
+        }
+
+        // Validate travel date
+        if (date < getToday()) {
+            setError("Travel date cannot be in the past.");
+            return;
+        }
+
+        // Check same departure and destination
+        if (fromCode === toCode) {
+            setError("Departure and destination airports must be different.");
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            const data = await searchFlights(from, to, date);
+            // Send city names to the main backend
+            const data = await searchFlights(fromCity, toCity, date);
 
-            setFlights(data);
+            setFlights(Array.isArray(data) ? data : []);
 
-        } catch (error) {
-            console.error(error);
-            setError("Unable to search flights.");
+            if (!Array.isArray(data) || data.length === 0) {
+                setError("No flights found for this route. Please try another route.");
+            }
+        } catch (err) {
+            console.error("Database flight search failed:", err);
+
+            setError(
+                err.response?.data?.message ||
+                "Unable to search flights. Please try again."
+            );
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div>
-
+        <div className="flight-search">
             <h1>Search Flights</h1>
 
+            <p>Choose your departure and destination airports.</p>
+
             <form onSubmit={handleSearch}>
-
+                {/* Departure Airport */}
                 <div>
-                    <label>From</label>
+                    <label htmlFor="from">From Airport</label>
                     <input
+                        id="from"
                         type="text"
-                        placeholder="HYD"
+                        placeholder="Enter airport code (e.g. HYD)"
                         value={from}
-                        onChange={(e) =>
-                            setFrom(e.target.value.toUpperCase())
-                        }
+                        onChange={(e) => setFrom(e.target.value.toUpperCase())}
+                        maxLength={3}
                         required
                     />
                 </div>
 
+                {/* Destination Airport */}
                 <div>
-                    <label>To</label>
+                    <label htmlFor="to">To Airport</label>
                     <input
+                        id="to"
                         type="text"
-                        placeholder="DEL"
+                        placeholder="Enter airport code (e.g. DEL)"
                         value={to}
-                        onChange={(e) =>
-                            setTo(e.target.value.toUpperCase())
-                        }
+                        onChange={(e) => setTo(e.target.value.toUpperCase())}
+                        maxLength={3}
                         required
                     />
                 </div>
 
+                {/* Travel Date */}
                 <div>
-                    <label>Date</label>
+                    <label htmlFor="date">Travel Date</label>
                     <input
+                        id="date"
                         type="date"
                         value={date}
-                        onChange={(e) =>
-                            setDate(e.target.value)
-                        }
+                        min={minDate}
+                        onChange={(e) => setDate(e.target.value)}
                         required
                     />
                 </div>
 
-                <button type="submit">
-                    Search Flights
+                <button type="submit" disabled={loading}>
+                    {loading ? "Searching..." : "Search Flights"}
                 </button>
-
             </form>
 
-            {loading && (
-                <p>Searching for flights...</p>
-            )}
+            {/* Loading */}
+            {loading && <p>Searching available flights...</p>}
 
+            {/* Error */}
             {error && (
-                <p>{error}</p>
+                <p role="alert" style={{ color: "red" }}>
+                    {error}
+                </p>
             )}
 
-            <div>
+            {/* Flight Results */}
+            {flights.length > 0 && (
+                <div>
+                    <h2>Available Flights</h2>
 
-                {flights.length > 0 && (
-                    <div>
+                    {flights.map((flight) => (
+                        <div key={flight.id} className="flight-card">
+                            <h3>{flight.flight || flight.flightNumber}</h3>
 
-                        <h2>Available Flights</h2>
+                            <p>Airline: {flight.airline}</p>
+                            <p>Route: {flight.sourceCity} → {flight.destinationCity}</p>
+                            <p>Departure: {flight.departureTime}</p>
+                            <p>Arrival: {flight.arrivalTime}</p>
+                            <p>Duration: {flight.duration} hours</p>
+                            <p>Stops: {flight.stops}</p>
+                            <p>Class: {flight.flightClass}</p>
+                            <p>Price: ₹{flight.price}</p>
+                            <p>Travel date selected: {date}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
 
-                        {flights.map((flight) => (
-                            <div key={flight.id}>
-
-                                <h3>
-                                    {flight.flightNumber}
-                                </h3>
-
-                                <p>
-                                    Airline: {flight.airline}
-                                </p>
-
-                                <p>
-                                    Duration: {flight.durationMinutes} minutes
-                                </p>
-
-                                <p>
-                                    Status: {flight.status}
-                                </p>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(`/flights/${flight.id}`)
-                                    }
-                                >
-                                    View Details
-                                </button>
-
-                            </div>
-                        ))}
-
-                    </div>
-                )}
-
-                {!loading &&
-                    flights.length === 0 &&
-                    !error && (
-                        <p>
-                            Search for available flights.
-                        </p>
-                    )}
-
-            </div>
-
+            {/* Initial Message */}
+            {!loading && flights.length === 0 && !error && (
+                <p>Enter your journey details to search for flights.</p>
+            )}
         </div>
     );
 };
 
 export default FlightSearch;
+
 
 
 
